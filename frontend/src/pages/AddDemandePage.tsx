@@ -8,56 +8,82 @@ import {
   message,
   Select,
 } from "antd";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react"; 
 import dayjs from "dayjs";
-import { createDemande, getServices } from "../services/DemandeService";
+// import { createDemande, getServices } from "../services/DemandeService"; <--- POUBELLE
 import { useNavigate } from "react-router-dom";
-import type { Service } from "../types";
+// import type { Service } from "../types"; <--- POUBELLE
+
+
+import { trpc } from '../client';
+
 
 export default function AddDemandePage() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  
+  /* ----- POUBELLE 🗑️ -----
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
 
   const loadServices = async () => {
-    try {
-      const data = await getServices();
-      setServices(data);
-    } catch (error) {
-      console.error(error);
-    }
+    // ... tout ce bordel ...
   };
-
   useEffect(() => {
     loadServices();
   }, []);
+  -------------------------- */
 
-  const onFinish: FormProps["onFinish"] = async (values) => {
+
+  // On remplace 15 lignes par 1 SEULE :
+  const { 
+    data: services = [], 
+    isLoading: loadingServices 
+  } = trpc.demandes.listServices.useQuery();
+
+
+  const utils = trpc.useUtils(); // Pour rafraîchir la liste
+  const createMutation = trpc.demandes.create.useMutation({
+   
+    onSuccess: () => {
+      message.success("Demande créée avec succès");
+      utils.demandes.list.invalidate(); 
+      navigate("/"); 
+    },
+    
+    onError: (err) => {
+      console.error(err);
+      message.error(`Erreur: ${err.message}`);
+    }
+  });
+
+  const onFinish: FormProps["onFinish"] = (values) => {
+    
+   
     const payload = {
-      nom: values.nom,
-      prenom: values.prenom,
-      email: values.email,
-      service: values.service,
-      dateDebut: values.dateDebut?.toISOString?.() || values.dateDebut,
-      dateFin: values.dateFin?.toISOString?.() || values.dateFin,
+      ...values,
+      dateDebut: values.dateDebut.toISOString(),
+      dateFin: values.dateFin.toISOString(),
       motivation: values.motivation || undefined,
     };
-
+    
+    /* ----- POUBELLE 🗑️ -----
     try {
       setSubmitting(true);
       await createDemande(payload);
-      message.success("Demande créée avec succès");
-      setError(null);
-      navigate("/");
+      // ...
     } catch (err) {
-      console.error(err);
-      message.error("Erreur lors de la création de la demande");
+      // ...
     } finally {
       setSubmitting(false);
-      setError("Une erreur est survenue lors de la soumission de la demande.");
     }
+    -------------------------- */
+
+    
+    
+    // tRPC s'occupe de 'isLoading', 'error', 'success'.
+    createMutation.mutate(payload);
   };
 
   const onFinishFailed: FormProps["onFinishFailed"] = () => {
@@ -107,6 +133,8 @@ export default function AddDemandePage() {
         >
           <Input />
         </Form.Item>
+        
+        {/* LE SELECT EST MAINTENANT LIÉ À TRPC */}
         <Form.Item
           label="Service"
           name="service"
@@ -114,7 +142,7 @@ export default function AddDemandePage() {
             { required: true, message: "Veuillez sélectionner un service" },
           ]}
         >
-          <Select>
+          <Select loading={loadingServices}> {/* Bonus : on lie le loading */}
             {services.map((service) => (
               <Select.Option key={service} value={service}>
                 {service}
@@ -122,6 +150,7 @@ export default function AddDemandePage() {
             ))}
           </Select>
         </Form.Item>
+        
         <Form.Item
           label="Date de début"
           name="dateDebut"
@@ -192,15 +221,27 @@ export default function AddDemandePage() {
         >
           <Input.TextArea />
         </Form.Item>
+        
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit" loading={submitting}>
+          <Button 
+            type="primary" 
+            htmlType="submit" 
+            // LE BOUTON UTILISE LE 'isPending' DE LA MUTATION
+            loading={createMutation.isPending}
+          >
             Soumettre
           </Button>
         </Form.Item>
       </Form>
 
-      {error && (
-        <Alert type="error" message="Erreur" description={error} showIcon />
+      {/* On utilise l'erreur de la mutation */}
+      {createMutation.error && (
+        <Alert 
+          type="error" 
+          message="Erreur" 
+          description={createMutation.error.message} // L'erreur est typesafe
+          showIcon 
+        />
       )}
     </div>
   );

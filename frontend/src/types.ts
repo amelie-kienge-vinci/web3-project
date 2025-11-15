@@ -1,4 +1,7 @@
+//types.ts
 
+
+// Poubelle 🗑️
 
 export type Statut = 'EN_ATTENTE' | 'APPROUVEE' | 'REFUSEE';
 

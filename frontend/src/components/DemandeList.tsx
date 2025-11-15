@@ -1,21 +1,19 @@
 import { Button, Select, Spin, Table } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
-import { getAllDemandes, getServices } from "../services/DemandeService";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Demande, Service } from "../types";
+//import type { Demande, Service } from "../types";
+import { trpc } from '../client'; 
+import type { inferProcedureOutput } from '@trpc/server';
+import type { AppRouter } from '../../../backend/src/app';
+type Demande = inferProcedureOutput<AppRouter['demandes']['list']>[number];
 
 const DemandeList = () => {
+const navigate = useNavigate();
+  /* Poubelle 🗑️
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
-    undefined
-  );
-  const [services, setServices] = useState<Service[]>([]);
-  const [selectedService, setSelectedService] = useState<string | undefined>(
-    undefined
-  );
+  
 
   useEffect(() => {
     loadDemandes();
@@ -44,7 +42,27 @@ const DemandeList = () => {
       setLoading(false);
     }
   };
+ */
 
+  const { 
+    data: demandes = [], 
+    isLoading: loadingDemandes 
+  } = trpc.demandes.list.useQuery();
+
+  // ÇA REMPLACE : const [services, setServices] + loadServices()
+  const { 
+    data: services = [], 
+    isLoading: loadingServices 
+  } = trpc.demandes.listServices.useQuery();
+
+ const loading = loadingDemandes || loadingServices;
+
+    const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
+    undefined
+  );
+  const [selectedService, setSelectedService] = useState<string | undefined>(
+    undefined
+  );
   const filteredDemandes = demandes.filter((demande) => {
     return (
       (selectedStatus ? demande.statut === selectedStatus : true) &&

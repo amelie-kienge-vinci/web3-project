@@ -1,6 +1,7 @@
 import { initTRPC } from '@trpc/server';
 import type { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import prisma from '../utils/prisma';
+import superjson from 'superjson';
 
 /**
  * Contexte: C'est ici qu'on mettrait les choses
@@ -14,7 +15,9 @@ export const createContext = ({ req, res }: CreateExpressContextOptions) => {
 /**
  * Initialisation de tRPC
  */
-const t = initTRPC.context<typeof createContext>().create();
+const t = initTRPC.context<typeof createContext>().create({
+  transformer: superjson,
+});
 
 /**
  * Exporte les briques de base :

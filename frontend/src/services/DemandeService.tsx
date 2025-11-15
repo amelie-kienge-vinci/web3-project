@@ -1,6 +1,6 @@
+// frontend/src/services/DemandeService.tsx
 
-
-
+// Poubelle 🗑️
 const API_URL = 'http://localhost:3000/api/demandes';
 
 const getAllDemandes = async () => {
