@@ -1,9 +1,11 @@
 {
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "test": "vitest"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
+    "@trpc/server": "^11.7.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "eslint": "^9.38.0",
@@ -13,6 +15,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "vitest": "^1.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.4",
     "@types/node": "^24.9.1",
